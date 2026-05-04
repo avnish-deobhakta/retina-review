@@ -1865,6 +1865,54 @@
   }
   /* Modal needs to be a bit wider to accommodate step cards */
   .modal { max-width: 480px !important; }
+
+  /* Image cache progress indicator — bottom-right, unobtrusive */
+  .cache-indicator {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    background: var(--surface, #fffaf0);
+    border: 1px solid var(--teal, #1f5c6f);
+    border-radius: var(--radius, 6px);
+    padding: 0.55rem 0.85rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--ink, #2c2622);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    z-index: 100;
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    max-width: calc(100vw - 2rem);
+  }
+  .cache-indicator.fading {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  .cache-indicator-spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--teal, #1f5c6f);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: cache-spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+  .cache-indicator.done .cache-indicator-spinner {
+    display: none;
+  }
+  .cache-indicator.done {
+    color: var(--success, #2d7a3a);
+    border-color: var(--success, #2d7a3a);
+  }
+  @keyframes cache-spin {
+    to { transform: rotate(360deg); }
+  }
+  @media (max-width: 540px) {
+    .cache-indicator { font-size: 0.7rem; padding: 0.5rem 0.7rem; bottom: 0.75rem; right: 0.75rem; }
+  }
 </style>
 <!-- Privacy-respecting pageview counter (GoatCounter — no cookies, no tracking) -->
 <script data-goatcounter="https://ophthalmology-review.goatcounter.com/count"
@@ -1887,7 +1935,7 @@
   <main id="view"></main>
 
   <footer>
-    Built for board prep · 900 BCSC text questions + 210 image questions · v1.9
+    Built for board prep · 900 BCSC text questions + 210 image questions · v2.0
     <div style="margin-top: 0.5rem; font-family: var(--font-serif); font-style: italic; letter-spacing: 0; text-transform: none; font-size: 0.85rem; color: var(--ink-muted);">
       Made by Dr. Deo for those in the trenches · est. 2026
     </div>
@@ -17167,12 +17215,114 @@ App.go("home");
    The SW caches the app shell on first visit so it works on the
    subway. New versions install in the background and take over
    on the next natural page load — no jarring auto-reloads.
+
+   After the SW takes control, ImageCache.warm() pre-fetches all
+   210 question images so they're available offline too. Runs once
+   per IMAGE_VERSION; subsequent visits skip if already done.
    ============================================================ */
+const ImageCache = {
+  STATUS_KEY: "retinaReview.imagesCachedFor",
+
+  // Have we already pre-cached all images for the current IMAGE_VERSION?
+  isWarmed() {
+    try {
+      return localStorage.getItem(this.STATUS_KEY) === String(IMAGE_VERSION);
+    } catch (e) { return false; }
+  },
+
+  markWarmed() {
+    try { localStorage.setItem(this.STATUS_KEY, String(IMAGE_VERSION)); } catch (e) {}
+  },
+
+  // Pre-fetch every question image so the SW can cache them. Runs in
+  // background after SW is active. Stops cleanly if user goes offline.
+  async warm() {
+    if (!navigator.onLine) return;
+    if (!("serviceWorker" in navigator) || !navigator.serviceWorker.controller) return;
+    if (this.isWarmed()) return;
+
+    const imageUrls = QUESTIONS
+      .filter(q => q.imageUrl)
+      .map(q => `${q.imageUrl}?v=${IMAGE_VERSION}`);
+    if (imageUrls.length === 0) return;
+
+    let completed = 0;
+    let failures = 0;
+    const BATCH_SIZE = 5;
+    this.showIndicator(0, imageUrls.length);
+
+    // If user goes offline mid-warmup, stop showing the indicator
+    const offlineHandler = () => this.hideIndicator(false);
+    window.addEventListener("offline", offlineHandler, { once: true });
+
+    try {
+      for (let i = 0; i < imageUrls.length; i += BATCH_SIZE) {
+        if (!navigator.onLine) break;
+        const batch = imageUrls.slice(i, i + BATCH_SIZE);
+        const results = await Promise.allSettled(batch.map(url => fetch(url)));
+        results.forEach(r => {
+          if (r.status === "fulfilled" && r.value && r.value.ok) completed++;
+          else failures++;
+        });
+        this.showIndicator(completed, imageUrls.length);
+      }
+    } finally {
+      window.removeEventListener("offline", offlineHandler);
+    }
+
+    this.hideIndicator(failures === 0 && completed === imageUrls.length);
+    if (failures === 0 && completed === imageUrls.length) {
+      this.markWarmed();
+    }
+  },
+
+  showIndicator(done, total) {
+    let el = document.getElementById("cache-indicator");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "cache-indicator";
+      el.className = "cache-indicator";
+      document.body.appendChild(el);
+    }
+    el.innerHTML = `
+      <span class="cache-indicator-spinner"></span>
+      <span>Preparing offline mode · ${done} / ${total}</span>
+    `;
+  },
+
+  hideIndicator(success) {
+    const el = document.getElementById("cache-indicator");
+    if (!el) return;
+    if (success) {
+      el.classList.add("done");
+      el.innerHTML = `<span style="color:var(--success,#2d7a3a);font-weight:600;">✓</span> <span>Ready offline · all 210 images cached</span>`;
+      setTimeout(() => {
+        el.classList.add("fading");
+        setTimeout(() => el.remove(), 500);
+      }, 3000);
+    } else {
+      el.remove();
+    }
+  }
+};
+
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("service-worker.js").catch(() => {
-      // Offline support unavailable — app still works online, no harm done
-    });
+    navigator.serviceWorker.register("service-worker.js")
+      .then(() => {
+        const startWarmup = () => {
+          // Small delay so warmup doesn't compete with initial render
+          setTimeout(() => ImageCache.warm(), 1500);
+        };
+        if (navigator.serviceWorker.controller) {
+          startWarmup();
+        } else {
+          navigator.serviceWorker.addEventListener("controllerchange", startWarmup, { once: true });
+        }
+      })
+      .catch(() => {
+        // Offline support unavailable — app still works online, no harm done
+      });
   });
 }
 </script>

@@ -10,7 +10,7 @@
  *
  * BUMP THIS NUMBER ON EACH DEPLOY THAT INCLUDES NEW QUESTIONS OR CHANGES TO index.html
  */
-const CACHE_VERSION = "retina-review-v4";
+const CACHE_VERSION = "retina-review-v5";
 
 // Files to grab during install. Keep this list small —  if any of them fail
 // to fetch, the entire install fails. Images are intentionally NOT here;
