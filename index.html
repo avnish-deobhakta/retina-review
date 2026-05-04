@@ -4,6 +4,15 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Retina Review — BCSC Board Prep</title>
+
+<!-- PWA: manifest, theme color, iOS standalone-mode hints -->
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<meta name="theme-color" content="#1f5c6f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Retina Review">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Serif:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1704,6 +1713,158 @@
     background: var(--accent);
     transition: width 0.3s ease;
   }
+
+  /* Install banner — surfaces offline/install option without being pushy */
+  .install-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 1rem;
+    margin-bottom: 1.25rem;
+    background: var(--teal-soft, #e6f0f3);
+    border: 1px solid var(--teal, #1f5c6f);
+    border-radius: var(--radius);
+    font-family: var(--font-serif);
+    font-size: 0.9rem;
+    color: var(--ink);
+  }
+  .install-banner-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+  }
+  .install-banner-text {
+    flex: 1;
+    line-height: 1.4;
+  }
+  .install-banner-text strong {
+    color: var(--teal, #1f5c6f);
+  }
+  .install-banner-cta {
+    background: var(--teal, #1f5c6f);
+    color: #fff;
+    border: none;
+    padding: 0.4rem 0.85rem;
+    border-radius: var(--radius);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .install-banner-cta:hover { opacity: 0.9; }
+  .install-banner-dismiss {
+    background: transparent;
+    border: none;
+    color: var(--ink-faint);
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 0.25rem 0.4rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .install-banner-dismiss:hover { color: var(--ink); }
+
+  @media (max-width: 540px) {
+    .install-banner { font-size: 0.85rem; padding: 0.6rem 0.75rem; }
+    .install-banner-cta { font-size: 0.7rem; padding: 0.35rem 0.7rem; }
+  }
+
+  /* Install instructions modal — visual step-by-step with real icons */
+  .install-intro {
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    color: var(--ink);
+    line-height: 1.5;
+    margin: 0.5rem 0 1rem;
+  }
+  .install-intro strong {
+    color: var(--teal, #1f5c6f);
+  }
+  .install-step-card {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.8rem 0.9rem;
+    background: var(--surface-soft, #f7f3eb);
+    border: 1px solid var(--border, #d8cfba);
+    border-radius: var(--radius, 6px);
+    margin-bottom: 0.6rem;
+  }
+  .install-step-num {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+    min-width: 2.7rem;
+    flex-shrink: 0;
+  }
+  .install-step-icon {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 1.5px solid var(--teal, #1f5c6f);
+    border-radius: 9px;
+    color: var(--teal, #1f5c6f);
+  }
+  .install-step-text {
+    flex: 1;
+    font-family: var(--font-serif);
+    font-size: 0.92rem;
+    color: var(--ink);
+    line-height: 1.4;
+  }
+  .install-step-text strong {
+    color: var(--teal, #1f5c6f);
+  }
+  /* Faux "menu item" preview — looks like an OS list row */
+  .install-menu-mock {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    background: #fff;
+    border: 1.5px solid var(--teal, #1f5c6f);
+    border-radius: 9px;
+    margin: 0.45rem 0 0.6rem;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 0.95rem;
+    color: #000;
+  }
+  .install-menu-mock-icon {
+    color: var(--teal, #1f5c6f);
+    flex-shrink: 0;
+  }
+  .install-tip {
+    margin-top: 0.75rem;
+    padding: 0.7rem 0.9rem;
+    background: var(--surface-soft, #f7f3eb);
+    border-left: 3px solid var(--gold);
+    font-family: var(--font-serif);
+    font-size: 0.88rem;
+    color: var(--ink-muted);
+    line-height: 1.45;
+    font-style: italic;
+  }
+  .install-platform-switch {
+    margin-top: 1rem;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+  }
+  .install-platform-switch a {
+    color: var(--teal, #1f5c6f);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  /* Modal needs to be a bit wider to accommodate step cards */
+  .modal { max-width: 480px !important; }
 </style>
 <!-- Privacy-respecting pageview counter (GoatCounter — no cookies, no tracking) -->
 <script data-goatcounter="https://ophthalmology-review.goatcounter.com/count"
@@ -1726,7 +1887,7 @@
   <main id="view"></main>
 
   <footer>
-    Built for board prep · 900 BCSC text questions + 210 image questions · v1.5
+    Built for board prep · 900 BCSC text questions + 210 image questions · v1.9
     <div style="margin-top: 0.5rem; font-family: var(--font-serif); font-style: italic; letter-spacing: 0; text-transform: none; font-size: 0.85rem; color: var(--ink-muted);">
       Made by Dr. Deo for those in the trenches · est. 2026
     </div>
@@ -15464,6 +15625,7 @@ const Views = {
 
     App.el().innerHTML = `
       <div class="fade-in">
+        ${Install.bannerHTML()}
         <section class="home-hero">
           <div class="home-eyebrow">For the Written Boards</div>
           <h1 class="home-title">A focused review for <em>retina</em></h1>
@@ -16756,7 +16918,263 @@ const Views = {
   }
 };
 
+/* ============================================================
+   PWA — install discoverability
+   Show a soft banner on the home view that explains offline use.
+   Hide if already installed; allow dismissal for 14 days.
+   ============================================================ */
+const Install = {
+  // Whether we have a deferred install prompt (Chrome/Edge on Android, Chrome/Edge desktop)
+  deferredPrompt: null,
+
+  // Detection helpers
+  isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+           window.navigator.standalone === true;
+  },
+  isIOS() {
+    return /iPhone|iPad|iPod/.test(navigator.userAgent) && !window.MSStream;
+  },
+  isAndroid() {
+    return /Android/.test(navigator.userAgent);
+  },
+
+  // Dismissal tracking
+  DISMISS_KEY: "retinaReview.installDismissed",
+  DISMISS_DAYS: 14,
+  isDismissed() {
+    try {
+      const ts = parseInt(localStorage.getItem(this.DISMISS_KEY) || "0", 10);
+      if (!ts) return false;
+      const ageMs = Date.now() - ts;
+      return ageMs < this.DISMISS_DAYS * 24 * 60 * 60 * 1000;
+    } catch (e) { return false; }
+  },
+  dismiss() {
+    try { localStorage.setItem(this.DISMISS_KEY, String(Date.now())); } catch (e) {}
+    const banner = document.getElementById("install-banner");
+    if (banner) banner.remove();
+  },
+
+  shouldShowBanner() {
+    return !this.isStandalone() && !this.isDismissed();
+  },
+
+  // Render the banner HTML (called from Views.home)
+  bannerHTML() {
+    if (!this.shouldShowBanner()) return "";
+    return `
+      <div class="install-banner" id="install-banner">
+        <span class="install-banner-icon">📱</span>
+        <div class="install-banner-text">
+          <strong>Works offline</strong> — install on your phone to study without wifi (subway, hospital floors, anywhere).
+        </div>
+        <button class="install-banner-cta" onclick="Install.openModal()">How?</button>
+        <button class="install-banner-dismiss" onclick="Install.dismiss()" title="Hide for two weeks">✕</button>
+      </div>
+    `;
+  },
+
+  // Open instructions modal — platform-aware, with real icons
+  openModal(forcePlatform) {
+    // SVG icons rendered at the size users will actually see them on their device
+    const ICONS = {
+      iosShare: `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>`,
+      threeDots: `<svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>`,
+      threeLines: `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>`,
+      plusSquare: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2.5"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>`,
+      installTray: `<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>`,
+    };
+
+    // Platform detection (override allowed via forcePlatform)
+    const isSamsung = /SamsungBrowser/.test(navigator.userAgent);
+    let platform = forcePlatform;
+    if (!platform) {
+      if (this.isIOS()) platform = "ios";
+      else if (isSamsung) platform = "samsung";
+      else if (this.isAndroid()) platform = "android";
+      else platform = "desktop";
+    }
+
+    // Platform switcher footer — let user view other platforms
+    const switcher = `
+      <div class="install-platform-switch">
+        Different device?
+        ${platform !== "ios" ? `<a onclick="Install.openModal('ios')">iPhone/iPad</a> · ` : ''}
+        ${platform !== "android" ? `<a onclick="Install.openModal('android')">Android</a> · ` : ''}
+        ${platform !== "samsung" ? `<a onclick="Install.openModal('samsung')">Samsung Internet</a> · ` : ''}
+        ${platform !== "desktop" ? `<a onclick="Install.openModal('desktop')">Desktop</a>` : ''}
+      </div>
+    `;
+
+    let title, text;
+
+    // SPECIAL CASE: native install prompt available (Chrome desktop/Android with PWA support)
+    // Only honor this if user didn't explicitly pick a different platform
+    if (this.deferredPrompt && !forcePlatform && (platform === "android" || platform === "desktop")) {
+      title = "Install Retina Review";
+      text = `
+        <p class="install-intro">
+          Your browser supports a one-tap install. Tap <strong>Install</strong> below and Retina Review will be added to your home screen — works offline, opens fullscreen.
+        </p>
+        <div class="install-tip">
+          After installing, open the app any time without wifi. Mountain climbs on the L train? Yes.
+        </div>
+        ${switcher}
+      `;
+      Modal.show({
+        title, text,
+        confirmLabel: "Install",
+        cancelLabel: "Maybe later",
+        onConfirm: () => this.triggerNativePrompt()
+      });
+      return;
+    }
+
+    if (platform === "ios") {
+      title = "Install on iPhone or iPad";
+      text = `
+        <p class="install-intro">
+          Open this site in <strong>Safari</strong> first (Chrome and other iOS browsers can't install PWAs — that's an Apple restriction).
+        </p>
+        <div class="install-step-card">
+          <span class="install-step-num">Step 1</span>
+          <span class="install-step-icon">${ICONS.iosShare}</span>
+          <span class="install-step-text">Tap the <strong>Share</strong> button — usually at the bottom of Safari, sometimes top right on iPad. It looks like the icon on the left.</span>
+        </div>
+        <div class="install-step-card">
+          <span class="install-step-num">Step 2</span>
+          <span class="install-step-icon" style="border-style:dashed;">⌄</span>
+          <span class="install-step-text">Scroll down in the share menu until you see this row:</span>
+        </div>
+        <div class="install-menu-mock">
+          <span class="install-menu-mock-icon">${ICONS.plusSquare}</span>
+          <span style="flex:1;">Add to Home Screen</span>
+        </div>
+        <div class="install-step-card">
+          <span class="install-step-num">Step 3</span>
+          <span class="install-step-icon" style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:0.85rem;font-weight:600;">Add</span>
+          <span class="install-step-text">Tap <strong>Add</strong> in the top right. The RR icon now lives on your home screen.</span>
+        </div>
+        ${switcher}
+      `;
+    } else if (platform === "samsung") {
+      title = "Install on Samsung Internet";
+      text = `
+        <p class="install-intro">
+          Samsung Internet keeps the menu at the <strong>bottom</strong> of the browser, not the top.
+        </p>
+        <div class="install-step-card">
+          <span class="install-step-num">Step 1</span>
+          <span class="install-step-icon">${ICONS.threeLines}</span>
+          <span class="install-step-text">Tap the <strong>menu</strong> button at the bottom of the browser — three horizontal lines.</span>
+        </div>
+        <div class="install-step-card">
+          <span class="install-step-num">Step 2</span>
+          <span class="install-step-icon" style="font-size:1rem;">+</span>
+          <span class="install-step-text">Tap <strong>Add page to</strong>, then choose <strong>Home screen</strong>.</span>
+        </div>
+        <div class="install-step-card">
+          <span class="install-step-num">Step 3</span>
+          <span class="install-step-icon" style="font-family:Roboto,sans-serif;font-size:0.78rem;font-weight:600;">Add</span>
+          <span class="install-step-text">Tap <strong>Add</strong> on the confirmation. Done — the icon is now on your home screen.</span>
+        </div>
+        ${switcher}
+      `;
+    } else if (platform === "android") {
+      title = "Install on Android (Chrome)";
+      text = `
+        <p class="install-intro">
+          On most Android phones the default browser is <strong>Chrome</strong>, where the menu is in the top right.
+        </p>
+        <div class="install-step-card">
+          <span class="install-step-num">Step 1</span>
+          <span class="install-step-icon">${ICONS.threeDots}</span>
+          <span class="install-step-text">Tap the <strong>menu</strong> in the top right — three vertical dots.</span>
+        </div>
+        <div class="install-step-card">
+          <span class="install-step-num">Step 2</span>
+          <span class="install-step-icon" style="font-size:1rem;">+</span>
+          <span class="install-step-text">Tap <strong>Install app</strong> (or <strong>Add to Home screen</strong> — Chrome uses different wording on different devices).</span>
+        </div>
+        <div class="install-step-card">
+          <span class="install-step-num">Step 3</span>
+          <span class="install-step-icon" style="font-family:Roboto,sans-serif;font-size:0.72rem;font-weight:600;">Install</span>
+          <span class="install-step-text">Confirm with <strong>Install</strong>. The RR icon will appear in your app drawer.</span>
+        </div>
+        ${switcher}
+      `;
+    } else {
+      // Desktop
+      title = "Install on a desktop computer";
+      text = `
+        <p class="install-intro">
+          The reliable path on <strong>Chrome</strong> or <strong>Edge</strong> is through the menu — works regardless of browser version.
+        </p>
+        <div class="install-step-card">
+          <span class="install-step-num">Step 1</span>
+          <span class="install-step-icon">${ICONS.threeDots}</span>
+          <span class="install-step-text">Click the <strong>menu</strong> in the top right of your browser — three vertical dots.</span>
+        </div>
+        <div class="install-step-card">
+          <span class="install-step-num">Step 2</span>
+          <span class="install-step-icon" style="font-size:1rem;">+</span>
+          <span class="install-step-text">Look for <strong>Install Retina Review...</strong> — it might be directly in the menu, or nested under <em>Cast, save, and share</em> (Chrome) or <em>Apps</em> (Edge).</span>
+        </div>
+        <div class="install-step-card">
+          <span class="install-step-num">Step 3</span>
+          <span class="install-step-icon" style="font-family:Roboto,sans-serif;font-size:0.7rem;font-weight:600;">Install</span>
+          <span class="install-step-text">Click <strong>Install</strong> in the popup. The app opens in its own window — no browser tabs, no address bar.</span>
+        </div>
+        <div class="install-tip">
+          You may also see a small <span style="display:inline-flex;vertical-align:middle;width:18px;height:18px;color:var(--teal,#1f5c6f);">${ICONS.installTray}</span> install icon at the right end of the address bar — if it's there, click it for a one-step install. Chrome doesn't always show it; the menu path always works.
+        </div>
+        <div class="install-tip" style="border-left-color: var(--ink-muted); margin-top: 0.5rem;">
+          Honestly, the mobile install is the more useful one — it's what makes subway studying possible. Open this site on your phone for the best version.
+        </div>
+        ${switcher}
+      `;
+    }
+
+    Modal.show({ title, text, confirmLabel: "Got it", cancelLabel: "Close" });
+  },
+
+  triggerNativePrompt() {
+    if (!this.deferredPrompt) return;
+    this.deferredPrompt.prompt();
+    this.deferredPrompt.userChoice.then(() => {
+      this.deferredPrompt = null;
+    });
+  }
+};
+
+// Capture the native install prompt event before the browser shows its own UI
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  Install.deferredPrompt = e;
+});
+
+// Re-render home view in case it was already drawn — picks up the banner
+// once the prompt is captured (slight async race the first visit)
+window.addEventListener("appinstalled", () => {
+  Install.dismiss();
+});
+
 App.go("home");
+
+/* ============================================================
+   PWA — register service worker for offline support.
+   The SW caches the app shell on first visit so it works on the
+   subway. New versions install in the background and take over
+   on the next natural page load — no jarring auto-reloads.
+   ============================================================ */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("service-worker.js").catch(() => {
+      // Offline support unavailable — app still works online, no harm done
+    });
+  });
+}
 </script>
 </body>
 </html>
