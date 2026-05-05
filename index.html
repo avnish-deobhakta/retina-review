@@ -1863,6 +1863,71 @@
     text-decoration: underline;
     cursor: pointer;
   }
+  /* Quick question CTA — primary action, sits above the mode grid */
+  .quick-question-cta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    background: var(--teal, #1f5c6f);
+    color: #fffaf0;
+    border: none;
+    border-radius: var(--radius-lg, 8px);
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    cursor: pointer;
+    text-align: left;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 2px 8px rgba(31, 92, 111, 0.18);
+    font-family: inherit;
+  }
+  .quick-question-cta:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(31, 92, 111, 0.28);
+  }
+  .quick-question-cta:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(31, 92, 111, 0.18);
+  }
+  .quick-question-cta-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .quick-question-cta-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+  .quick-question-cta-title {
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .quick-question-cta-sub {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    opacity: 0.85;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .quick-question-cta-arrow {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+    opacity: 0.85;
+    transition: transform 0.15s ease;
+  }
+  .quick-question-cta:hover .quick-question-cta-arrow {
+    transform: translateX(3px);
+  }
+  @media (max-width: 540px) {
+    .quick-question-cta-sub { font-size: 0.65rem; }
+    .quick-question-cta-title { font-size: 1rem; }
+  }
+
   /* Modal needs to be a bit wider to accommodate step cards */
   .modal { max-width: 480px !important; }
 
@@ -1935,7 +2000,7 @@
   <main id="view"></main>
 
   <footer>
-    Built for board prep · 900 BCSC text questions + 210 image questions · v2.0
+    Built for board prep · 900 BCSC text questions + 210 image questions · v2.1
     <div style="margin-top: 0.5rem; font-family: var(--font-serif); font-style: italic; letter-spacing: 0; text-transform: none; font-size: 0.85rem; color: var(--ink-muted);">
       Made by Dr. Deo for those in the trenches · est. 2026
     </div>
@@ -15455,7 +15520,17 @@ const State = {
   mountain: null,
   currentMountainQ: null,
   currentMountainAnswer: null,
-  currentMountainRevealed: false
+  currentMountainRevealed: false,
+  quickQ: {
+    qIdx: null,
+    answer: null,
+    revealed: false,
+    hintShown: false,
+    eliminated: null,
+    count: 0,
+    correct: 0,
+    recentIds: []
+  }
 };
 
 const Stats = {
@@ -15679,6 +15754,15 @@ const Views = {
           <h1 class="home-title">A focused review for <em>retina</em></h1>
           <p class="home-sub">900 BCSC text questions plus 210 image-based questions across 20 chapters. Three ways to study: a patient mode for learning, a timed mode for the real thing, and a Mountain Mode that pushes you as high as you can go.</p>
         </section>
+
+        <button class="quick-question-cta" onclick="Views.quickStart()">
+          <span class="quick-question-cta-icon">⚡</span>
+          <div class="quick-question-cta-text">
+            <span class="quick-question-cta-title">Just give me a question</span>
+            <span class="quick-question-cta-sub">Random pull · keep going · exit any time</span>
+          </div>
+          <span class="quick-question-cta-arrow">→</span>
+        </button>
 
         ${totalSeen > 0 ? `
         <div class="stats-panel">
@@ -16035,6 +16119,203 @@ const Views = {
     State.flagged[qIdx] = !State.flagged[qIdx];
     if (State.mode === "training") Views.training();
     else Views.test();
+  },
+
+  /* ---------- QUICK QUESTION ---------- */
+  // One-tap entry from home: random pull, keep going as long as you want,
+  // exit any time. No setup screen, no preset, no end target.
+  quickStart() {
+    State.mode = "quick";
+    State.quickQ = {
+      qIdx: null,
+      answer: null,
+      revealed: false,
+      hintShown: false,
+      eliminated: null,
+      count: 0,
+      correct: 0,
+      recentIds: []
+    };
+    Views._quickPickNew();
+  },
+
+  _quickPickNew() {
+    const s = State.quickQ;
+    const recent = new Set(s.recentIds);
+    let idx;
+    let attempts = 0;
+    // Avoid recent repeats; bail after 50 attempts in case bank is small
+    do {
+      idx = Math.floor(Math.random() * QUESTIONS.length);
+      attempts++;
+    } while (recent.has(QUESTIONS[idx].id) && attempts < 50);
+
+    s.qIdx = idx;
+    s.answer = null;
+    s.revealed = false;
+    s.hintShown = false;
+    s.eliminated = null;
+
+    // Track recent — keep last 20 to avoid déjà vu
+    s.recentIds.push(QUESTIONS[idx].id);
+    if (s.recentIds.length > 20) s.recentIds.shift();
+
+    Views.quickQuestion();
+  },
+
+  quickQuestion() {
+    const s = State.quickQ;
+    if (!s || s.qIdx === null) {
+      Views.quickStart();
+      return;
+    }
+
+    const q = QUESTIONS[s.qIdx];
+    const accPct = s.count > 0 ? Math.round((s.correct / s.count) * 100) : 0;
+
+    App.el().innerHTML = `
+      <div class="fade-in">
+        <div class="action-bar" style="margin-bottom: 0.75rem;">
+          <button class="btn btn-ghost" onclick="App.go('home')">← Home</button>
+          ${s.count > 0 ? `
+            <span class="question-counter">${s.count} done · ${s.correct} correct${s.count >= 2 ? ` · ${accPct}%` : ''}</span>
+          ` : `
+            <span class="question-counter" style="font-style: italic; color: var(--ink-muted);">Quick question</span>
+          `}
+        </div>
+
+        <div class="question-meta">
+          <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+            <span class="question-id">${q.id}</span>
+            <span class="difficulty-badge ${difficultyClass(q.difficulty)}">${q.difficulty}</span>
+            <span class="topic-tag">Ch ${q.chapter} · ${q.topic}</span>
+            ${q.imageUrl ? '<span class="image-badge">📷 Image</span>' : ''}
+          </div>
+        </div>
+
+        <div class="question-card">
+          ${renderQuestionImage(q)}
+          <div class="question-prompt">${q.prompt}</div>
+
+          ${s.hintShown && !s.revealed && q.informal ? `
+            <div class="hint-box">
+              <span class="hint-label"><img src="${DEO_AVATAR}" class="deo-avatar deo-avatar-warning" alt="Dr. Deo" /> Dr. Deo's Hint</span>
+              <div class="hint-text">${q.informal}</div>
+            </div>
+          ` : ''}
+
+          <div class="choices">
+            ${q.choices.map((c, i) => {
+              let cls = "choice";
+              const isElim = s.eliminated && s.eliminated.includes(i);
+              if (s.revealed) {
+                if (i === q.correct) cls += " correct";
+                else if (i === s.answer) cls += " incorrect";
+                else if (isElim) cls += " eliminated";
+              } else {
+                if (isElim) cls += " eliminated";
+                if (s.answer === i) cls += " selected";
+              }
+              return `
+                <button class="${cls}" onclick="Views._quickSelect(${i})" ${s.revealed || isElim ? 'disabled' : ''}>
+                  <span class="choice-letter">${letter(i)}</span>
+                  <span>${c}</span>
+                </button>
+              `;
+            }).join('')}
+          </div>
+
+          ${s.revealed ? `
+            <div class="explanation-box">
+              <div class="explanation-header">
+                <span class="explanation-label">Explanation</span>
+                <span class="answer-pill ${s.answer !== q.correct ? 'was-wrong' : ''}">
+                  Answer: ${letter(q.correct)}
+                </span>
+              </div>
+              ${(s.answer !== q.correct && s.answer !== null && q.wrongExplanations && q.wrongExplanations[s.answer]) ? `
+                <div class="wrong-answer-block">
+                  <span class="wrong-answer-label">Why your answer was wrong</span>
+                  <div class="wrong-answer-text"><strong>${letter(s.answer)}.</strong>${q.wrongExplanations[s.answer]}</div>
+                </div>
+              ` : ''}
+              <div class="formal-block">${q.formal}</div>
+              ${q.informal ? `
+                <div class="pearl-block">
+                  <span class="pearl-label"><img src="${DEO_AVATAR}" class="deo-avatar" alt="Dr. Deo" /> Dr. Deo's Pearl</span>
+                  <div class="pearl-text">${q.informal}</div>
+                </div>
+              ` : ''}
+              <span class="reference-tag">📖 ${q.reference}</span>
+              ${renderImageAttribution(q)}
+            </div>
+          ` : ''}
+        </div>
+
+        <div class="action-bar">
+          <div class="action-group">
+            ${!s.revealed ? `
+              ${q.informal ? `
+                <button class="btn btn-ghost deo-hint-btn" onclick="Views._quickHint()" ${s.hintShown ? 'disabled' : ''}>
+                  <img src="${DEO_AVATAR}" alt="Dr. Deo" />
+                  ${s.hintShown ? "✓ Hint shown" : "Dr. Deo's Hint"}
+                </button>
+              ` : ''}
+              <button class="btn btn-ghost" onclick="Views._quickNarrow()" ${s.eliminated ? 'disabled' : ''}>
+                ${s.eliminated ? '✓ Narrowed' : 'Narrow to 2'}
+              </button>
+            ` : ''}
+          </div>
+          <div class="action-group">
+            ${!s.revealed ? `
+              <button class="btn btn-primary" onclick="Views._quickCheck()" ${s.answer === null ? 'disabled' : ''}>
+                Check answer
+              </button>
+            ` : `
+              <button class="btn btn-secondary" onclick="App.go('home')">End session</button>
+              <button class="btn btn-primary" onclick="Views._quickPickNew()">Next question →</button>
+            `}
+          </div>
+        </div>
+      </div>
+    `;
+  },
+
+  _quickSelect(idx) {
+    const s = State.quickQ;
+    if (s.revealed) return;
+    if (s.eliminated && s.eliminated.includes(idx)) return;
+    s.answer = idx;
+    Views.quickQuestion();
+  },
+
+  _quickCheck() {
+    const s = State.quickQ;
+    if (s.answer === null) return;
+    const q = QUESTIONS[s.qIdx];
+    s.revealed = true;
+    s.count += 1;
+    if (s.answer === q.correct) s.correct += 1;
+    Stats.recordAnswer(q.id, s.answer === q.correct);
+    Views.quickQuestion();
+  },
+
+  _quickHint() {
+    const s = State.quickQ;
+    if (s.revealed) return;
+    s.hintShown = true;
+    Views.quickQuestion();
+  },
+
+  _quickNarrow() {
+    const s = State.quickQ;
+    if (s.revealed) return;
+    const q = QUESTIONS[s.qIdx];
+    // Eliminate 2 wrong choices (never the correct one)
+    const wrongIndices = q.choices.map((_, i) => i).filter(i => i !== q.correct);
+    const shuffled = [...wrongIndices].sort(() => Math.random() - 0.5);
+    s.eliminated = shuffled.slice(0, 2);
+    Views.quickQuestion();
   },
 
   /* ---------- TEST SETUP ---------- */
